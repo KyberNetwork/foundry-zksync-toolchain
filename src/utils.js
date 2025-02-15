@@ -1,7 +1,10 @@
 const os = require("os");
 
 function normalizeVersionName(version) {
-  return version.replace(/^nightly-[0-9a-f]{40}$/, "nightly");
+  if (/^nightly-[0-9a-f]{40}$/.test(version)) {
+    return "nightly";
+  }
+  return version.replace(/-/g, "_");
 }
 
 function mapArch(arch) {
@@ -15,7 +18,16 @@ function mapArch(arch) {
 
 function getDownloadObject(version) {
   const platform = os.platform();
-  const filename = `foundry_${normalizeVersionName(version)}_${platform}_${mapArch(os.arch())}`;
+  let filename;
+
+  if (version.startsWith("foundry")) {
+    // If version starts with "foundry", don't add the prefix.
+    filename = `${normalizeVersionName(version)}_${platform}_${mapArch(os.arch())}`;
+  } else {
+    // Otherwise, add the "foundry_zksync_" prefix.
+    filename = `foundry_zksync_${normalizeVersionName(version)}_${platform}_${mapArch(os.arch())}`;
+  }
+
   const extension = platform === "win32" ? "zip" : "tar.gz";
   const url = `https://github.com/matter-labs/foundry-zksync/releases/download/${version}/${filename}.${extension}`;
 
